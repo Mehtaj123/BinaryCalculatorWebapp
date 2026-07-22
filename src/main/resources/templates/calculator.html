@@ -1,0 +1,95 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Binary Calculator</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f4f6f8;
+        display: flex;
+        justify-content: center;
+        padding-top: 60px;
+      }
+      .card {
+        background: #fff;
+        padding: 32px 40px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        width: 360px;
+      }
+      h1 {
+        font-size: 22px;
+        margin-top: 0;
+        color: #1f3864;
+      }
+      label {
+        display: block;
+        margin-top: 14px;
+        font-size: 13px;
+        color: #555;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 4px;
+        box-sizing: border-box;
+        font-size: 15px;
+      }
+      button {
+        margin-top: 22px;
+        width: 100%;
+        padding: 10px;
+        background: #2e74b5;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 15px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #1f3864;
+      }
+      .hint {
+        font-size: 12px;
+        color: #888;
+        margin-top: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Binary Calculator</h1>
+      <form action="#" th:action="@{/}" method="post">
+        <label for="operand1">Operand 1 (binary)</label>
+        <input
+          type="text"
+          id="operand1"
+          name="operand1"
+          th:value="${operand1}"
+          th:attr="autofocus=${operand1Focused}"
+          placeholder="e.g. 111"
+        />
+
+        <label for="operator">Operator</label>
+        <select id="operator" name="operator">
+          <option value="+">+ (addition)</option>
+        </select>
+        <div class="hint">
+          Only addition is currently wired up in this build.
+        </div>
+
+        <label for="operand2">Operand 2 (binary)</label>
+        <input
+          type="text"
+          id="operand2"
+          name="operand2"
+          placeholder="e.g. 1010"
+        />
+
+        <button type="submit">Calculate</button>
+      </form>
+    </div>
+  </body>
+</html>
