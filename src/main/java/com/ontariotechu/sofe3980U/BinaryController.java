@@ -21,6 +21,8 @@ public class BinaryController {
     public String result(@RequestParam(name = "operand1", required = false, defaultValue = "") String operand1,
             @RequestParam(name = "operator", required = false, defaultValue = "") String operator,
             @RequestParam(name = "operand2", required = false, defaultValue = "") String operand2, Model model) {
+        operand1 = operand1.trim();
+        operand2 = operand2.trim();
         model.addAttribute("operand1", operand1);
         model.addAttribute("operator", operator);
         model.addAttribute("operand2", operand2);
