@@ -145,3 +145,5 @@ Semester: Summer 2026
 ## License
 
 This repository was created for educational purposes as part of the SOFE3980U course at Ontario Tech University.
+
+Triggering Jenkins pipeline test - Wed Jul 29 11:18:56 PM UTC 2026
