@@ -1,0 +1,117 @@
+pipeline {
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: gcloud
+    image: google/cloud-sdk:latest
+    command:
+    - cat
+    tty: true
+  - name: maven
+    image: maven:3.8.6-eclipse-temurin-11
+    command:
+    - cat
+    tty: true
+"""
+        }
+    }
+
+    environment {
+        PROJECT_ID    = credentials('project_id')
+        REPO_PATH     = credentials('repo_path')
+        CLUSTER_NAME  = credentials('cluster_name')
+        CLUSTER_ZONE  = credentials('cluster_zone')
+        IMAGE_NAME    = "binarycalculator"
+        APP_DIR       = "BinaryCalculatorWebapp"
+    }
+
+    stages {
+        stage('test') {
+            steps {
+                container('maven') {
+                    dir("${APP_DIR}") {
+                        sh 'mvn test'
+                    }
+                }
+            }
+        }
+
+        stage('build') {
+            steps {
+                container('maven') {
+                    dir("${APP_DIR}") {
+                        sh 'mvn package -DskipTests'
+                    }
+                }
+            }
+        }
+
+        stage('containerize') {
+            steps {
+                container('gcloud') {
+                    withCredentials([file(credentialsId: 'service_account', variable: 'GC_KEY')]) {
+                        dir("${APP_DIR}") {
+                            sh '''
+                                gcloud auth activate-service-account --key-file="$GC_KEY"
+                                gcloud config set project "$PROJECT_ID"
+                                gcloud auth configure-docker "$(echo $REPO_PATH | cut -d'/' -f1)" --quiet
+                                docker build -t "$REPO_PATH/$IMAGE_NAME" .
+                                docker push "$REPO_PATH/$IMAGE_NAME"
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('deployment') {
+            steps {
+                container('gcloud') {
+                    withCredentials([file(credentialsId: 'service_account', variable: 'GC_KEY')]) {
+                        sh '''
+                            gcloud auth activate-service-account --key-file="$GC_KEY"
+                            gcloud config set project "$PROJECT_ID"
+                            gcloud container clusters get-credentials "$CLUSTER_NAME" --zone "$CLUSTER_ZONE"
+
+                            kubectl delete deployment binarycalculator-deployment --ignore-not-found=true
+
+                            kubectl create deployment binarycalculator-deployment --image="$REPO_PATH/$IMAGE_NAME" --port=8080
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('service') {
+            steps {
+                container('gcloud') {
+                    withCredentials([file(credentialsId: 'service_account', variable: 'GC_KEY')]) {
+                        sh '''
+                            gcloud auth activate-service-account --key-file="$GC_KEY"
+                            gcloud config set project "$PROJECT_ID"
+                            gcloud container clusters get-credentials "$CLUSTER_NAME" --zone "$CLUSTER_ZONE"
+
+                            if ! kubectl get service binarycalculator-service > /dev/null 2>&1; then
+                                kubectl expose deployment binarycalculator-deployment --type=LoadBalancer --name=binarycalculator-service --port=8080 --target-port=8080
+                            fi
+
+                            echo "Waiting for external IP..."
+                            for i in $(seq 1 20); do
+                                IP=$(kubectl get service binarycalculator-service -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+                                if [ -n "$IP" ]; then
+                                    echo "Application is available at: http://$IP:8080"
+                                    break
+                                fi
+                                sleep 10
+                            done
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}
