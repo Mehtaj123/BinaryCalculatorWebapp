@@ -26,7 +26,7 @@ spec:
         CLUSTER_NAME  = credentials('cluster_name')
         CLUSTER_ZONE  = credentials('cluster_zone')
         IMAGE_NAME    = "binarycalculator"
-        APP_DIR       = "BinaryCalculatorWebapp"
+        APP_DIR       = "."
     }
 
     stages {
