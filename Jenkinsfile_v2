@@ -56,7 +56,7 @@ spec:
                     withCredentials([file(credentialsId: 'service_account', variable: 'GC_KEY')]) {
                         dir("${APP_DIR}") {
                             sh '''
-                                gcloud auth activate-service-account --key-file="$GC_KEY"
+                                cp "$GC_KEY" key.json && gcloud auth activate-service-account --key-file=key.json
                                 gcloud config set project "$PROJECT_ID"
                                 gcloud auth configure-docker "$(echo $REPO_PATH | cut -d'/' -f1)" --quiet
                                 docker build -t "$REPO_PATH/$IMAGE_NAME" .
@@ -73,7 +73,7 @@ spec:
                 container('gcloud') {
                     withCredentials([file(credentialsId: 'service_account', variable: 'GC_KEY')]) {
                         sh '''
-                            gcloud auth activate-service-account --key-file="$GC_KEY"
+                            cp "$GC_KEY" key.json && gcloud auth activate-service-account --key-file=key.json
                             gcloud config set project "$PROJECT_ID"
                             gcloud container clusters get-credentials "$CLUSTER_NAME" --zone "$CLUSTER_ZONE"
 
@@ -91,7 +91,7 @@ spec:
                 container('gcloud') {
                     withCredentials([file(credentialsId: 'service_account', variable: 'GC_KEY')]) {
                         sh '''
-                            gcloud auth activate-service-account --key-file="$GC_KEY"
+                            cp "$GC_KEY" key.json && gcloud auth activate-service-account --key-file=key.json
                             gcloud config set project "$PROJECT_ID"
                             gcloud container clusters get-credentials "$CLUSTER_NAME" --zone "$CLUSTER_ZONE"
 
